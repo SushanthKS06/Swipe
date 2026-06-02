@@ -37,6 +37,7 @@ CRITICAL RULES:
 - Set quantity to 1.
 - Set unit_price to equal the net_amount.
 - This ensures that quantity * unit_price = net_amount.
+- When generating the global products array for summary documents, you must create a single master product named 'General Entry'. Set its quantity to the total number of summary invoices you processed. Set its unit_price to null (because the price fluctuates per invoice). NEVER output a master product with 0 quantity.
 16. MATHEMATICAL VALIDATION: Before outputting any invoice item, verify that quantity * unit_price roughly equals the net_amount (excluding tax/discount). NEVER output a row where quantity and unit price are 0 but the net amount is greater than 0.
 
 DEDUPLICATION: If the same customer appears multiple times, sum their total purchase amount and keep a single customer entry. Keep product list unique. Keep the structure perfect.
