@@ -5,8 +5,6 @@ export function computeCustomerMissingFields(customer: Customer): string[] {
   const fieldsToCheck: Array<keyof Customer> = [
     'customerName',
     'phoneNumber',
-    'email',
-    'address',
     'totalPurchaseAmount',
   ];
   return fieldsToCheck.filter(f => {

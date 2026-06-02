@@ -9,9 +9,7 @@ export function computeInvoiceMissingFields(invoice: Invoice): string[] {
     'quantity',
     'unitPrice',
     'taxAmount',
-    'taxPercentage',
     'totalAmount',
-    'netAmount',
     'date',
   ];
   return fieldsToCheck.filter(f => {

@@ -9,7 +9,6 @@ export function computeProductMissingFields(product: Product): string[] {
     'tax',
     'taxPercentage',
     'priceWithTax',
-    'discount',
   ];
   return fieldsToCheck.filter(f => {
     const val = product[f];

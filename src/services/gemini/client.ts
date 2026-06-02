@@ -46,10 +46,10 @@ const extractionSchema: Schema = {
           name: { type: Type.STRING },
           quantity: { type: Type.NUMBER, nullable: true },
           unit_price: { type: Type.NUMBER, nullable: true },
-          tax_amount: { type: Type.NUMBER, nullable: true },
+          tax: { type: Type.NUMBER, nullable: true },
           tax_percentage: { type: Type.NUMBER, nullable: true },
-          net_amount: { type: Type.NUMBER, nullable: true },
-          discount_amount: { type: Type.NUMBER, nullable: true }
+          price_with_tax: { type: Type.NUMBER, nullable: true },
+          discount: { type: Type.NUMBER, nullable: true }
         }
       }
     },
@@ -60,7 +60,9 @@ const extractionSchema: Schema = {
         properties: {
           serial_number: { type: Type.STRING, nullable: true },
           customer_id: { type: Type.STRING, nullable: true },
+          customer_name: { type: Type.STRING, nullable: true },
           product_id: { type: Type.STRING, nullable: true },
+          product_name: { type: Type.STRING, nullable: true },
           quantity: { type: Type.NUMBER, nullable: true },
           unit_price: { type: Type.NUMBER, nullable: true },
           tax_amount: { type: Type.NUMBER, nullable: true },

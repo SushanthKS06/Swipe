@@ -242,6 +242,18 @@ export function parseGeminiResponse(
         finalTaxPercentage = 0;
       }
 
+      let finalQuantity = inv.quantity !== undefined ? inv.quantity : null;
+      let finalUnitPrice = inv.unit_price !== undefined ? inv.unit_price : null;
+
+      if (inv.product_name === 'General Entry' || inv.product_name === 'Summary Record') {
+        if (finalQuantity === null) {
+          finalQuantity = 1;
+        }
+        if (finalUnitPrice === null && inv.net_amount !== undefined) {
+          finalUnitPrice = inv.net_amount;
+        }
+      }
+
       const invoiceObj: Invoice = {
         id: uuidv4(),
         serialNumber: inv.serial_number ? inv.serial_number.trim() : null,
@@ -249,8 +261,8 @@ export function parseGeminiResponse(
         customerName: inv.customer_name ? inv.customer_name.trim() : null,
         productId: fProductUuid,
         productName: inv.product_name ? inv.product_name.trim() : null,
-        quantity: inv.quantity !== undefined ? inv.quantity : null,
-        unitPrice: inv.unit_price !== undefined ? inv.unit_price : null,
+        quantity: finalQuantity,
+        unitPrice: finalUnitPrice,
         taxAmount: taxAmount !== undefined ? taxAmount : null,
         taxPercentage: finalTaxPercentage !== undefined ? finalTaxPercentage : null,
         totalAmount: totalAmount !== undefined ? totalAmount : null,
