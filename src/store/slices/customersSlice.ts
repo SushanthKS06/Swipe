@@ -21,7 +21,29 @@ const customersSlice = createSlice({
   name: 'customers',
   initialState: customersAdapter.getInitialState(),
   reducers: {
-    addCustomers: customersAdapter.addMany,
+    addCustomers(state, action: PayloadAction<Customer[]>) {
+      const existingCustomers = Object.values(state.entities) as Customer[];
+      
+      for (const newCustomer of action.payload) {
+        const newName = (newCustomer.customerName || '').trim().toLowerCase();
+        
+        const match = newName ? existingCustomers.find(
+          c => (c.customerName || '').trim().toLowerCase() === newName
+        ) : undefined;
+        
+        if (match) {
+          const sumAmt = ((match.totalPurchaseAmount || 0) + (newCustomer.totalPurchaseAmount || 0));
+          customersAdapter.updateOne(state, {
+            id: match.id,
+            changes: {
+              totalPurchaseAmount: Math.round(sumAmt * 100) / 100
+            }
+          });
+        } else {
+          customersAdapter.addOne(state, newCustomer);
+        }
+      }
+    },
     updateCustomer(state, action: PayloadAction<{ id: string; updates: Partial<Customer> }>) {
       customersAdapter.updateOne(state, {
         id: action.payload.id,

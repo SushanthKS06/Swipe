@@ -118,17 +118,19 @@ async function generateWithRetry(aiModel: any, requestConfig: any, retries = 3, 
     try {
       return await aiModel.generateContent(requestConfig);
     } catch (error: any) {
-      const is503 = error?.status === 503 || error?.message?.includes("503") || error?.message?.includes("high demand") || error?.message?.includes("overloaded");
-      if (is503 && attempt < retries - 1) {
-        console.warn(`[API Retry] 503/high demand detected. Retrying in ${baseDelay}ms... (Attempt ${attempt + 1} of ${retries})`);
+      const isRetriable = error?.status === 503 || error?.status === 429 || error?.message?.includes("503") || error?.message?.includes("429") || error?.message?.includes("high demand") || error?.message?.includes("overloaded") || error?.message?.includes("Too Many Requests");
+      
+      if (isRetriable && attempt < retries - 1) {
+        console.warn(`[API Retry] 429/503 detected. Retrying in ${baseDelay}ms... (Attempt ${attempt + 1} of ${retries})`);
         await new Promise(resolve => setTimeout(resolve, baseDelay));
-        baseDelay *= 2;
+        baseDelay *= 2; // Exponential backoff (e.g. 2s, 4s, 8s)
         attempt++;
       } else {
         throw error;
       }
     }
   }
+  throw new Error("Failed to generate content after maximum retries.");
 }
 
 app.get("/api/health", (req, res) => {
@@ -215,10 +217,10 @@ app.post("/api/extract", async (req, res) => {
     res.json(parsedObj);
   } catch (error: any) {
     console.error("Extraction endpoint failed:", error);
-    const is503 = error?.status === 503 || error?.message?.includes("503") || error?.message?.includes("high demand") || error?.message?.includes("overloaded");
-    if (is503) {
+    const isRetriable = error?.status === 503 || error?.status === 429 || error?.message?.includes("503") || error?.message?.includes("429") || error?.message?.includes("high demand") || error?.message?.includes("overloaded") || error?.message?.includes("Too Many Requests");
+    if (isRetriable) {
       res.status(503).json({
-        error: "The AI service is currently experiencing extremely high demand. Please wait a moment and try again."
+        error: "The AI service is currently experiencing extremely high demand or rate limits. Please wait a moment and try again."
       });
       return;
     }

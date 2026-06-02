@@ -1,6 +1,7 @@
 import { detectFileType } from './detector';
 import { toBase64 } from '../../utils/fileHelpers';
 import { processExcelFile } from './excelProcessor';
+import { processImageFile } from './imageProcessor';
 import { parseGeminiResponse } from '../gemini/parser';
 import type { Invoice, Product, Customer } from '../../types';
 
@@ -33,9 +34,10 @@ export async function processFile(
     customMimeType = 'application/pdf';
   } else if (fileType === 'image') {
     onProgress(30);
-    filePayloads = [await toBase64(file)];
+    const base64Str = await processImageFile(file, (mime) => { customMimeType = mime; });
+    filePayloads = [base64Str];
     if (!customMimeType) {
-      // Find standard mime type based on extension
+      // Fallback
       const ext = file.name.split('.').pop()?.toLowerCase();
       customMimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
     }

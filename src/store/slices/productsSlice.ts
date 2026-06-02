@@ -23,7 +23,34 @@ const productsSlice = createSlice({
   name: 'products',
   initialState: productsAdapter.getInitialState(),
   reducers: {
-    addProducts: productsAdapter.addMany,
+    addProducts(state, action: PayloadAction<Product[]>) {
+      const existingProducts = Object.values(state.entities) as Product[];
+
+      for (const newProduct of action.payload) {
+        const newName = (newProduct.name || '').trim().toLowerCase();
+        
+        const match = newName ? existingProducts.find(
+          p => (p.name || '').trim().toLowerCase() === newName
+        ) : undefined;
+        
+        if (match) {
+          const sumQty = ((match.quantity || 0) + (newProduct.quantity || 0));
+          const sumTax = ((match.tax || 0) + (newProduct.tax || 0));
+          const newPriceWithTax = match.unitPrice !== null ? match.unitPrice + sumTax : null;
+
+          productsAdapter.updateOne(state, {
+            id: match.id,
+            changes: {
+              quantity: Math.round(sumQty * 100) / 100,
+              tax: Math.round(sumTax * 100) / 100,
+              priceWithTax: newPriceWithTax !== null ? Math.round(newPriceWithTax * 100) / 100 : match.priceWithTax
+            }
+          });
+        } else {
+          productsAdapter.addOne(state, newProduct);
+        }
+      }
+    },
     updateProduct(state, action: PayloadAction<{ id: string; updates: Partial<Product> }>) {
       productsAdapter.updateOne(state, {
         id: action.payload.id,

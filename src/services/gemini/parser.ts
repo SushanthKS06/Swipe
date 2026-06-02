@@ -3,6 +3,7 @@ import type { GeminiExtractionResult, Invoice, Product, Customer } from '../../t
 import { computeInvoiceMissingFields } from '../../store/slices/invoicesSlice';
 import { computeProductMissingFields } from '../../store/slices/productsSlice';
 import { computeCustomerMissingFields } from '../../store/slices/customersSlice';
+import { validateExtractionMath } from '../validators';
 
 export function parseGeminiResponse(
   data: GeminiExtractionResult,
@@ -248,6 +249,8 @@ export function parseGeminiResponse(
       invoices.push(invoiceObj);
     });
   }
+
+  validateExtractionMath(invoices);
 
   return {
     invoices,
