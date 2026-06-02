@@ -45,7 +45,9 @@ export async function processFile(
   } else {
     // excel
     onProgress(35);
-    filePayloads = await processExcelFile(file);
+    const chunks = await processExcelFile(file);
+    // Base64 encode the string payload for Gemini API
+    filePayloads = chunks.map(chunk => btoa(unescape(encodeURIComponent(chunk))));
     customMimeType = 'text/plain'; // Send spreadsheet csv-text to backend
   }
 

@@ -24,9 +24,8 @@ const productsSlice = createSlice({
   initialState: productsAdapter.getInitialState(),
   reducers: {
     addProducts(state, action: PayloadAction<Product[]>) {
-      const existingProducts = Object.values(state.entities) as Product[];
-
       for (const newProduct of action.payload) {
+        const existingProducts = Object.values(state.entities) as Product[];
         const newName = (newProduct.name || '').trim().toLowerCase();
         
         const match = newName ? existingProducts.find(

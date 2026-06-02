@@ -22,9 +22,8 @@ const customersSlice = createSlice({
   initialState: customersAdapter.getInitialState(),
   reducers: {
     addCustomers(state, action: PayloadAction<Customer[]>) {
-      const existingCustomers = Object.values(state.entities) as Customer[];
-      
       for (const newCustomer of action.payload) {
+        const existingCustomers = Object.values(state.entities) as Customer[];
         const newName = (newCustomer.customerName || '').trim().toLowerCase();
         
         const match = newName ? existingCustomers.find(

@@ -108,7 +108,7 @@ export async function extractFromDocument(base64Data: string, mimeType: string, 
         role: "user",
         parts: [
           {
-            text: EXTRACTION_SYSTEM_PROMPT + "\\n\\n" + promptStr,
+            text: EXTRACTION_SYSTEM_PROMPT + "\n\n" + promptStr,
           },
           {
             inlineData: {
