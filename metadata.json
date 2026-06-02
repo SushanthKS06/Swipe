@@ -1,0 +1,6 @@
+{
+  "name": "Swipe Invoice AI",
+  "description": "An intelligent, end-to-end invoice extraction system with real-time cross-tab synchronization and interactive correction for missing financial data.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
