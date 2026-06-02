@@ -62,13 +62,13 @@ export function parseGeminiResponse(
           existing.taxPercentage = p.tax_percentage;
         }
         if (p.tax !== null && p.tax !== undefined) {
-          existing.tax = (existing.tax || 0) + p.tax;
+          existing.tax = Math.round(((existing.tax || 0) + p.tax) * 100) / 100;
         }
         if (p.price_with_tax !== null && p.price_with_tax !== undefined) {
-          existing.priceWithTax = (existing.priceWithTax || 0) + p.price_with_tax;
+          existing.priceWithTax = Math.round(((existing.priceWithTax || 0) + p.price_with_tax) * 100) / 100;
         }
         if (p.discount !== null && p.discount !== undefined) {
-          existing.discount = (existing.discount || 0) + p.discount;
+          existing.discount = Math.round(((existing.discount || 0) + p.discount) * 100) / 100;
         }
         if (existing.name === 'General Entry' || existing.name === 'Summary Record') {
           existing.unitPrice = null;
@@ -108,7 +108,7 @@ export function parseGeminiResponse(
       } else {
         const existing = customersResultMap.get(uuid)!;
         if (c.total_purchase_amount !== null && c.total_purchase_amount !== undefined) {
-          existing.totalPurchaseAmount = (existing.totalPurchaseAmount || 0) + c.total_purchase_amount;
+          existing.totalPurchaseAmount = Math.round(((existing.totalPurchaseAmount || 0) + c.total_purchase_amount) * 100) / 100;
         }
         if (!existing.phoneNumber && c.phone_number) existing.phoneNumber = c.phone_number;
         if (!existing.email && c.email) existing.email = c.email;
@@ -187,10 +187,10 @@ export function parseGeminiResponse(
           const existingProduct = productsResultMap.get(uuid);
           if (existingProduct && (existingProduct.name === 'General Entry' || existingProduct.name === 'Summary Record')) {
             if (inv.tax_amount !== null && inv.tax_amount !== undefined) {
-              existingProduct.tax = (existingProduct.tax || 0) + inv.tax_amount;
+              existingProduct.tax = Math.round(((existingProduct.tax || 0) + inv.tax_amount) * 100) / 100;
             }
             if (inv.total_amount !== null && inv.total_amount !== undefined) {
-              existingProduct.priceWithTax = (existingProduct.priceWithTax || 0) + inv.total_amount;
+              existingProduct.priceWithTax = Math.round(((existingProduct.priceWithTax || 0) + inv.total_amount) * 100) / 100;
             }
             existingProduct.unitPrice = null;
             existingProduct.missingFields = computeProductMissingFields(existingProduct);

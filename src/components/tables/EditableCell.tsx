@@ -88,7 +88,7 @@ export function EditableCell({
   }
 
   // Display value nicely
-  let displayValue = value !== null && value !== undefined ? String(value) : '—';
+  let displayValue = value !== null && value !== undefined ? String(value) : '-';
   if (type === 'number' && typeof value === 'number') {
     if (fieldName.toLowerCase().includes('percentage') || fieldName.toLowerCase().includes('tax%')) {
       displayValue = `${value.toFixed(1)}%`;
