@@ -45,6 +45,9 @@ export function parseGeminiResponse(
           sourceFile: filename,
           currencyCode: docCurrency,
         };
+        if (productObj.name === 'General Entry' || productObj.name === 'Summary Record') {
+          productObj.unitPrice = null;
+        }
         productObj.missingFields = computeProductMissingFields(productObj);
         productsResultMap.set(uuid, productObj);
       } else {
@@ -66,6 +69,9 @@ export function parseGeminiResponse(
         }
         if (p.discount !== null && p.discount !== undefined) {
           existing.discount = (existing.discount || 0) + p.discount;
+        }
+        if (existing.name === 'General Entry' || existing.name === 'Summary Record') {
+          existing.unitPrice = null;
         }
         existing.missingFields = computeProductMissingFields(existing);
       }
@@ -168,8 +174,27 @@ export function parseGeminiResponse(
             sourceFile: filename,
             currencyCode: docCurrency,
           };
+          if (newProduct.name === 'General Entry' || newProduct.name === 'Summary Record') {
+            newProduct.unitPrice = null;
+            if (inv.total_amount !== null && inv.total_amount !== undefined) {
+              newProduct.priceWithTax = inv.total_amount;
+            }
+          }
           newProduct.missingFields = computeProductMissingFields(newProduct);
           productsResultMap.set(uuid, newProduct);
+        } else {
+          // Aggregate dynamically from invoice fields for summary fallback
+          const existingProduct = productsResultMap.get(uuid);
+          if (existingProduct && (existingProduct.name === 'General Entry' || existingProduct.name === 'Summary Record')) {
+            if (inv.tax_amount !== null && inv.tax_amount !== undefined) {
+              existingProduct.tax = (existingProduct.tax || 0) + inv.tax_amount;
+            }
+            if (inv.total_amount !== null && inv.total_amount !== undefined) {
+              existingProduct.priceWithTax = (existingProduct.priceWithTax || 0) + inv.total_amount;
+            }
+            existingProduct.unitPrice = null;
+            existingProduct.missingFields = computeProductMissingFields(existingProduct);
+          }
         }
         fProductUuid = uuid;
       }
