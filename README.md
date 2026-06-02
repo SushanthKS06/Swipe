@@ -2,7 +2,7 @@
 
 A production-ready full-stack application designed to parse, normalize, and validate complex financial documents (invoices, receipts, and summary spreadsheets) using Google's generative AI models.
 
-## 🏗 Architecture Diagram
+## Architecture Diagram
 
 ```mermaid
 sequenceDiagram
@@ -25,7 +25,7 @@ sequenceDiagram
     Frontend-->>User: Renders Editable Data Tables
 ```
 
-## ✨ Key Features
+## Key Features
 
 - **Multi-modal Extraction**: Upload PDFs, images, or summary spreadsheets. The system extracts relational entities (Invoices, Customers, Products).
 - **Strict Schema Enforcement**: Utilizes Gemini's Native Structured Outputs to guarantee deterministic API results without brittle regex scraping.
@@ -34,7 +34,7 @@ sequenceDiagram
 - **Export Ready**: Download the normalized tables (Invoices, Products, Customers) out to clean CSV formats with empty/null field protection.
 - **Resilient AI Calling**: Wraps the AI execution logic in an Exponential Backoff strategy to gracefully mitigate `503 High Demand` errors or rate limits.
 
-## 🛠 Technology Stack
+## Technology Stack
 
 | Component | Technology | Purpose |
 | :--- | :--- | :--- |
@@ -45,7 +45,7 @@ sequenceDiagram
 | **AI SDK** | `@google/genai` | Modern TypeScript SDK to interact with Gemini 2.5 Pro/Flash. |
 | **Build Tool** | Vite | Lightning-fast module bundler and HMR. |
 
-## 🏗 Architecture Diagram
+## Architecture Diagram
 
 ```mermaid
 flowchart TD
@@ -67,7 +67,7 @@ flowchart TD
 5. **Data Normalization Engine**: Once the raw JSON returns from Gemini, the client-side `parser.ts` engine kicks in. It dynamically maps relational ID keys, reconstructs missing `taxPercentages`, dedupes floating-point arithmetic properly (handling standard JS float math anomalies), and provides fallback entities for unstructured summary tables.
 6. **Data Presentation & Export**: The normalized arrays (Invoices, Products, Customers) are pushed into the Redux store and beautifully rendered within interactive data tables. Users can verify, edit, and then reliably export these normalized databases to CSV.
 
-## 🔌 Core API Interfaces
+## Core API Interfaces
 
 ### Internal Proxy Endpoint
 
@@ -90,7 +90,7 @@ Proxies the file payload to Google Gen AI securely.
 | `products` | `array` | A list of distinct Product entities with AI-generated Foreign Keys (`product_id`). |
 | `invoices` | `array` | The line-item ledger mapping Quantities and Taxes to their relational Product/Customer IDs. |
 
-## 🗂 Complete Project Structure
+## Complete Project Structure
 
 ```text
 /
@@ -156,7 +156,7 @@ Proxies the file payload to Google Gen AI securely.
 │       └── formatters.ts
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -179,9 +179,9 @@ GEMINI_API_KEY=your_api_key_here
 
 3. Open the app in your browser (typically `http://localhost:3000`).
 
-## 📚 Technical Documentation
+## Technical Documentation
 
 For an in-depth dive into the internal data normalization logic, schema design, and financial math preservation strategies, please read our [Technical Architecture Strategy](./TECHNICAL_ARCHITECTURE.md).
 
-## 📄 License
+## License
 MIT
