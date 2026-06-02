@@ -74,43 +74,45 @@ function MainApp() {
   // Export structure preparation matching schema
   const getExportData = () => {
     switch (activeTab) {
-      case 'invoices':
-        return filteredInvoices.map(i => ({
-          'Serial Number': i.serialNumber || 'N/A',
-          'Customer': i.customerName || 'N/A',
-          'Product Reference': i.productName || 'N/A',
-          'Quantity': i.quantity || 0,
-          'Unit Price ($)': i.unitPrice || 0,
-          'Tax Amount ($)': i.taxAmount || 0,
-          'Tax Rate (%)': i.taxPercentage || 0,
-          'Net Amount ($)': i.netAmount || 0,
-          'Total Amount ($)': i.totalAmount || 0,
-          'Invoice Date': i.date || 'N/A',
-          'Extraction Confidence': i.confidence,
-          'Parsed Source Filename': i.sourceFile,
-        }));
-      case 'products':
-        return filteredProducts.map(p => ({
-          'Product Name': p.name || 'N/A',
-          'Cumulative Quantity': p.quantity || 0,
-          'Raw Unit Price ($)': p.unitPrice || 0,
-          'Calculated Tax ($)': p.tax || 0,
-          'Tax Rate (%)': p.taxPercentage || 0,
-          'Gross Price with Tax ($)': p.priceWithTax || 0,
-          'Extracted Discount ($)': p.discount || 0,
-          'Extraction Confidence': p.confidence,
-          'Parsed Source Filename': p.sourceFile,
-        }));
-      case 'customers':
-        return filteredCustomers.map(c => ({
-          'Customer Name': c.customerName || 'N/A',
-          'Phone Number': c.phoneNumber || 'N/A',
-          'Email Address': c.email || 'N/A',
-          'Billing Address': c.address || 'N/A',
-          'Aggregate Purchases ($)': c.totalPurchaseAmount || 0,
-          'Extraction Confidence': c.confidence,
-          'Parsed Source Filename': c.sourceFile,
-        }));
+    case 'invoices':
+      return filteredInvoices.map(i => ({
+        'Serial Number': i.serialNumber || 'N/A',
+        'Customer': i.customerName || 'N/A',
+        'Product Reference': i.productName || 'N/A',
+        'Quantity': i.quantity === null || i.quantity === undefined ? "" : i.quantity,
+        'Unit Price ($)': i.unitPrice === null || i.unitPrice === undefined ? "" : i.unitPrice,
+        'Tax Amount ($)': i.taxAmount === null || i.taxAmount === undefined ? "" : i.taxAmount,
+        'Tax Rate (%)': i.taxPercentage === null || i.taxPercentage === undefined ? "" : i.taxPercentage,
+        'Net Amount ($)': i.netAmount === null || i.netAmount === undefined ? "" : i.netAmount,
+        'Total Amount ($)': i.totalAmount === null || i.totalAmount === undefined ? "" : i.totalAmount,
+        'Balance Due ($)': i.balanceDue === null || i.balanceDue === undefined ? "" : i.balanceDue,
+        'Invoice Date': i.date || 'N/A',
+        'Extraction Confidence': i.confidence,
+        'Parsed Source Filename': i.sourceFile,
+      }));
+    case 'products':
+      return filteredProducts.map(p => ({
+        'Product Name': p.name || 'N/A',
+        'Cumulative Quantity': p.quantity === null || p.quantity === undefined ? "" : p.quantity,
+        'Raw Unit Price ($)': p.unitPrice === null || p.unitPrice === undefined ? "" : p.unitPrice,
+        'Calculated Tax ($)': p.tax === null || p.tax === undefined ? "" : p.tax,
+        'Tax Rate (%)': p.taxPercentage === null || p.taxPercentage === undefined ? "" : p.taxPercentage,
+        'Gross Price with Tax ($)': p.priceWithTax === null || p.priceWithTax === undefined ? "" : p.priceWithTax,
+        'Extracted Discount ($)': p.discount === null || p.discount === undefined ? "" : p.discount,
+        'Extraction Confidence': p.confidence,
+        'Parsed Source Filename': p.sourceFile,
+      }));
+    case 'customers':
+      return filteredCustomers.map(c => ({
+        'Customer Name': c.customerName || 'N/A',
+        'Phone Number': c.phoneNumber || 'N/A',
+        'Email Address': c.email || 'N/A',
+        'Billing Address': c.address || 'N/A',
+        'Aggregate Purchases ($)': c.totalPurchaseAmount === null || c.totalPurchaseAmount === undefined ? "" : c.totalPurchaseAmount,
+        'Balance Due ($)': c.balanceDue === null || c.balanceDue === undefined ? "" : c.balanceDue,
+        'Extraction Confidence': c.confidence,
+        'Parsed Source Filename': c.sourceFile,
+      }));
       default:
         return [];
     }

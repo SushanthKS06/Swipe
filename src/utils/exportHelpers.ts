@@ -14,18 +14,16 @@ export function exportToCSV(data: Record<string, any>[], filename: string): void
     ...data.map(row => {
       return headers
         .map(fieldName => {
-          const value = row[fieldName];
-          if (value === null || value === undefined) {
-            return '""';
-          }
+          const val = row[fieldName];
+          const displayValue = (val === null || val === undefined) ? "" : val;
           
           let strValue = '';
-          if (Array.isArray(value)) {
-            strValue = value.join('; ');
-          } else if (typeof value === 'object') {
-            strValue = JSON.stringify(value);
+          if (Array.isArray(displayValue)) {
+            strValue = displayValue.join('; ');
+          } else if (typeof displayValue === 'object') {
+            strValue = JSON.stringify(displayValue);
           } else {
-            strValue = String(value);
+            strValue = String(displayValue);
           }
 
           // Escape inner double quotes by doubling them up, then wrap the entire cell in quotes
