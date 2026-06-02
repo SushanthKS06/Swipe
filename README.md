@@ -47,6 +47,19 @@ sequenceDiagram
 
 ## 🔄 End-to-End System Flow
 
+```mermaid
+flowchart TD
+    A[User Uploads Document] -->|File (PDF/Image/CSV)| B(React Frontend)
+    B -->|Base64 Data + MIME| C{Express Backend}
+    C -->|generateWithRetry| D[Gemini API]
+    D -->|Structured Data| C
+    C -->|JSON Payload| E[parser.ts Engine]
+    E -->|Tax Eng + Math Fixes| F[Normalized Entities]
+    F -->|Invoices / Products / Customers| G(Redux Store)
+    G -->|Rendered| H[Interactive Data Tables]
+    H -->|User Edits| I[CSV Export]
+```
+
 1. **Document Ingestion**: The user uploads a financial document (PDF, Receipt Image, or Spreadsheet) through the drag-and-drop React interface.
 2. **Preprocessing**: The file is converted to a base64 encoded string format on the client-side alongside its respective MIME type (`application/pdf`, `image/png`, etc.).
 3. **Secure API Transport**: The frontend transmits the payload to our intermediate Node.js Express backend via the `/api/extract` REST endpoint. This ensures the `GEMINI_API_KEY` remains securely hidden from the browser.
