@@ -9,6 +9,7 @@ interface CustomersTableProps {
 
 export function CustomersTable({ customers }: CustomersTableProps) {
   const { editCustomer } = useCustomers();
+  const showBalanceDue = customers.some(c => c.balanceDue != null);
 
   return (
     <div id="customers-table-container" className="w-full overflow-x-auto bg-white border border-slate-100 rounded-xl shadow-sm">
@@ -20,6 +21,7 @@ export function CustomersTable({ customers }: CustomersTableProps) {
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-52">Email Address</th>
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-80">Billing Address</th>
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-40">Total Purchase</th>
+            {showBalanceDue && <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-32">Balance Due</th>}
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-32">Confidence</th>
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-48">Source File</th>
           </tr>
@@ -75,6 +77,18 @@ export function CustomersTable({ customers }: CustomersTableProps) {
                 type="number"
                 currencyCode={customer.currencyCode}
               />
+
+              {/* Balance Due */}
+              {showBalanceDue && (
+                <EditableCell
+                  value={customer.balanceDue}
+                  isMissing={customer.missingFields.includes('balanceDue')}
+                  fieldName="balanceDue"
+                  onSave={val => editCustomer(customer.id, { balanceDue: val })}
+                  type="number"
+                  currencyCode={customer.currencyCode}
+                />
+              )}
 
               {/* ConfidenceBadge */}
               <td className="px-4 py-3 align-middle border-b border-slate-100 font-sans text-sm">

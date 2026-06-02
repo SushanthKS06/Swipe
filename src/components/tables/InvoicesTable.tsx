@@ -9,6 +9,7 @@ interface InvoicesTableProps {
 
 export function InvoicesTable({ invoices }: InvoicesTableProps) {
   const { editInvoice } = useInvoices();
+  const showBalanceDue = invoices.some(inv => inv.balanceDue != null);
 
   return (
     <div id="invoices-table-container" className="w-full overflow-x-auto bg-white border border-slate-100 rounded-xl shadow-sm">
@@ -24,6 +25,7 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-28">Tax %</th>
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-32">Net Amount</th>
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-32">Total Amount</th>
+            {showBalanceDue && <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-32">Balance Due</th>}
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-36">Date</th>
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-32">Confidence</th>
             <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-500 font-sans w-48">Source File</th>
@@ -119,6 +121,18 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
                 type="number"
                 currencyCode={invoice.currencyCode}
               />
+
+              {/* Balance Due */}
+              {showBalanceDue && (
+                <EditableCell
+                  value={invoice.balanceDue}
+                  isMissing={invoice.missingFields.includes('balanceDue')}
+                  fieldName="balanceDue"
+                  onSave={val => editInvoice(invoice.id, { balanceDue: val })}
+                  type="number"
+                  currencyCode={invoice.currencyCode}
+                />
+              )}
 
               {/* Date */}
               <EditableCell

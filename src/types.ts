@@ -24,6 +24,7 @@ export interface Invoice {
   totalAmount: Nullable<number>;
   netAmount: Nullable<number>;
   date: Nullable<string>;           // ISO date string YYYY-MM-DD
+  balanceDue: Nullable<number>;
   missingFields: string[];          // List of fields that are null/missing
   confidence: Confidence;
   sourceFile: string;               // Original uploaded filename
@@ -53,6 +54,7 @@ export interface Customer {
   email: Nullable<string>;
   address: Nullable<string>;
   totalPurchaseAmount: Nullable<number>;
+  balanceDue: Nullable<number>;
   missingFields: string[];
   confidence: Confidence;
   sourceFile: string;
@@ -93,6 +95,7 @@ export interface GeminiExtractionResult {
     total_amount: Nullable<number>;
     net_amount: Nullable<number>;
     date: Nullable<string>;
+    balance_due: Nullable<number>;
   }>;
   products: Array<{
     id: Nullable<string>;
@@ -111,5 +114,6 @@ export interface GeminiExtractionResult {
     email: Nullable<string>;
     address: Nullable<string>;
     total_purchase_amount: Nullable<number>;
+    balance_due: Nullable<number>;
   }>;
 }

@@ -31,6 +31,7 @@ CRITICAL RULES:
 11. CURRENCY DETECTION: Analyze the document to determine the primary currency used. Return the 3-letter ISO 4217 currency code (e.g., USD, INR, EUR, GBP) in the \`summary.currency_code\` field. If no currency is visible, default to 'USD'.
 12. LITERAL TRANSCRIPTION: Do not alter, autocorrect, or add formatting to strings. Transcribe product names, IDs, and text fields EXACTLY as they appear in the source document. Be character-perfect.
 13. STRICT METADATA SCANNING: NEVER miss explicitly labeled metadata. Actively scan the entire document specifically for keys like 'Email', 'Phone', 'Address', or 'Account'. If a labeled value exists anywhere in the document, you MUST capture it in the respective JSON field. Do not return null if the data is visible.
+14. BALANCE DUE: If the document explicitly states a 'Balance Due' or 'Amount Due' that differs from the total amount, capture it. Otherwise, return null.
 
 DEDUPLICATION: If the same customer appears multiple times, sum their total purchase amount and keep a single customer entry. Keep product list unique. Keep the structure perfect.
 `;
@@ -64,7 +65,8 @@ const extractionSchema: Schema = {
           tax_percentage: { type: Type.NUMBER, nullable: true },
           total_amount: { type: Type.NUMBER, nullable: true },
           net_amount: { type: Type.NUMBER, nullable: true },
-          date: { type: Type.STRING, nullable: true }
+          date: { type: Type.STRING, nullable: true },
+          balance_due: { type: Type.NUMBER, nullable: true }
         }
       }
     },
@@ -94,7 +96,8 @@ const extractionSchema: Schema = {
           phone_number: { type: Type.STRING, nullable: true },
           email: { type: Type.STRING, nullable: true },
           address: { type: Type.STRING, nullable: true },
-          total_purchase_amount: { type: Type.NUMBER, nullable: true }
+          total_purchase_amount: { type: Type.NUMBER, nullable: true },
+          balance_due: { type: Type.NUMBER, nullable: true }
         }
       }
     }
