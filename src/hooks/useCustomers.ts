@@ -1,12 +1,12 @@
 import { useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { updateCustomer, clearAll } from '../store/slices/customersSlice';
+import { updateCustomer, clearAll, customersAdapter } from '../store/slices/customersSlice';
 import { cascadeCustomerUpdate } from '../store/slices/invoicesSlice';
 import type { Customer } from '../types';
 
 export function useCustomers() {
   const dispatch = useAppDispatch();
-  const customers = useAppSelector(state => state.customers.data);
+  const customers = useAppSelector(state => customersAdapter.getSelectors().selectAll(state.customers));
 
   const editCustomer = useCallback((id: string, updates: Partial<Customer>) => {
     // 1. Update the Customer entity itself

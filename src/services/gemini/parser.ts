@@ -17,8 +17,12 @@ export function parseGeminiResponse(
   const productsResultMap = new Map<string, Product>(); // UUID -> Product
   const customersResultMap = new Map<string, Customer>(); // UUID -> Customer
 
-  if (Array.isArray(data.products)) {
-    data.products.forEach(p => {
+  const safeProducts = data.products || [];
+  const safeCustomers = data.customers || [];
+  const safeInvoices = data.invoices || [];
+
+  if (Array.isArray(safeProducts)) {
+    safeProducts.forEach(p => {
       // Need ID to track relational mapping
       const pId = p.id;
       if (!pId) return;
@@ -78,8 +82,8 @@ export function parseGeminiResponse(
     });
   }
 
-  if (Array.isArray(data.customers)) {
-    data.customers.forEach(c => {
+  if (Array.isArray(safeCustomers)) {
+    safeCustomers.forEach(c => {
       const cId = c.id;
       if (!cId) return;
 
@@ -121,8 +125,8 @@ export function parseGeminiResponse(
 
   const invoices: Invoice[] = [];
 
-  if (Array.isArray(data.invoices)) {
-    data.invoices.forEach(inv => {
+  if (Array.isArray(safeInvoices)) {
+    safeInvoices.forEach(inv => {
       let fCustomerUuid: string | null = null;
       let fProductUuid: string | null = null;
 

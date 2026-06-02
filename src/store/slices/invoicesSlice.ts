@@ -1,13 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createEntityAdapter, PayloadAction } from '@reduxjs/toolkit';
 import type { Invoice } from '../../types';
-
-interface InvoicesState {
-  data: Invoice[];
-}
-
-const initialState: InvoicesState = {
-  data: [],
-};
 
 export function computeInvoiceMissingFields(invoice: Invoice): string[] {
   const fieldsToCheck: Array<keyof Invoice> = [
@@ -28,23 +20,22 @@ export function computeInvoiceMissingFields(invoice: Invoice): string[] {
   }) as string[];
 }
 
+export const invoicesAdapter = createEntityAdapter<Invoice>();
+
 const invoicesSlice = createSlice({
   name: 'invoices',
-  initialState,
+  initialState: invoicesAdapter.getInitialState(),
   reducers: {
-    addInvoices(state, action: PayloadAction<Invoice[]>) {
-      // Append new invoices
-      state.data.push(...action.payload);
-    },
+    addInvoices: invoicesAdapter.addMany,
     updateInvoice(state, action: PayloadAction<{ id: string; updates: Partial<Invoice> }>) {
-      const idx = state.data.findIndex(i => i.id === action.payload.id);
-      if (idx !== -1) {
-        state.data[idx] = {
-          ...state.data[idx],
-          ...action.payload.updates,
-        };
-        // Recompute missing fields dynamically
-        state.data[idx].missingFields = computeInvoiceMissingFields(state.data[idx]);
+      invoicesAdapter.updateOne(state, {
+        id: action.payload.id,
+        changes: action.payload.updates,
+      });
+      // Recompute missing fields dynamically
+      const invoice = state.entities[action.payload.id];
+      if (invoice) {
+        invoice.missingFields = computeInvoiceMissingFields(invoice as Invoice);
       }
     },
     cascadeProductUpdate(
@@ -52,8 +43,8 @@ const invoicesSlice = createSlice({
       action: PayloadAction<{ productId: string; name?: string; unitPrice?: number }>
     ) {
       const { productId, name, unitPrice } = action.payload;
-      state.data.forEach(invoice => {
-        if (invoice.productId === productId) {
+      Object.values(state.entities).forEach(invoice => {
+        if (invoice && invoice.productId === productId) {
           if (name !== undefined) {
             invoice.productName = name;
           }
@@ -61,7 +52,7 @@ const invoicesSlice = createSlice({
             invoice.unitPrice = unitPrice;
           }
           // Recompute missing fields after cascade
-          invoice.missingFields = computeInvoiceMissingFields(invoice);
+          invoice.missingFields = computeInvoiceMissingFields(invoice as Invoice);
         }
       });
     },
@@ -70,19 +61,17 @@ const invoicesSlice = createSlice({
       action: PayloadAction<{ customerId: string; customerName?: string }>
     ) {
       const { customerId, customerName } = action.payload;
-      state.data.forEach(invoice => {
-        if (invoice.customerId === customerId) {
+      Object.values(state.entities).forEach(invoice => {
+        if (invoice && invoice.customerId === customerId) {
           if (customerName !== undefined) {
             invoice.customerName = customerName;
           }
           // Recompute missing fields after cascade
-          invoice.missingFields = computeInvoiceMissingFields(invoice);
+          invoice.missingFields = computeInvoiceMissingFields(invoice as Invoice);
         }
       });
     },
-    clearAll(state) {
-      state.data = [];
-    },
+    clearAll: invoicesAdapter.removeAll,
   },
 });
 

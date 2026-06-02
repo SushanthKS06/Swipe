@@ -11,9 +11,9 @@ interface TabBarProps {
 }
 
 export function TabBar({ activeTab, setActiveTab }: TabBarProps) {
-  const invoiceCount = useAppSelector(state => state.invoices.data.length);
-  const productCount = useAppSelector(state => state.products.data.length);
-  const customerCount = useAppSelector(state => state.customers.data.length);
+  const invoiceCount = useAppSelector(state => state.invoices.ids.length);
+  const productCount = useAppSelector(state => state.products.ids.length);
+  const customerCount = useAppSelector(state => state.customers.ids.length);
 
   const tabs: Array<{ id: TabID; label: string; icon: ReactNode; count: number }> = [
     {

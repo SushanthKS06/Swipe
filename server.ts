@@ -41,6 +41,7 @@ CRITICAL RULES:
 16. MATHEMATICAL VALIDATION: Before outputting any invoice item, verify that quantity * unit_price roughly equals the net_amount (excluding tax/discount). NEVER output a row where quantity and unit price are 0 but the net amount is greater than 0.
 
 DEDUPLICATION: If the same customer appears multiple times, sum their total purchase amount and keep a single customer entry. Keep product list unique. Keep the structure perfect.
+ENTITY RESOLUTION: You must act as an entity resolution engine. If you see 'Acme Corp' and 'Acme Corporation' across different rows, you MUST recognize them as the same entity and assign them the EXACT same \`customer_id\`. Do the same for slight variations in product names. The \`customer_id\` and \`product_id\` must be alphanumeric slugs (e.g., 'cust_acme_corp').
 `;
 
 const extractionSchema: Schema = {
@@ -208,8 +209,9 @@ app.post("/api/extract", async (req, res) => {
       throw new Error("Gemini returned an empty response.");
     }
 
-    // Verify it is actual JSON
-    const parsedObj = JSON.parse(textOutput);
+    // Verify it is actual JSON and strip any markdown
+    const jsonStr = textOutput.substring(textOutput.indexOf('{'), textOutput.lastIndexOf('}') + 1);
+    const parsedObj = JSON.parse(jsonStr);
     res.json(parsedObj);
   } catch (error: any) {
     console.error("Extraction endpoint failed:", error);

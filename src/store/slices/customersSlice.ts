@@ -1,13 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createEntityAdapter, PayloadAction } from '@reduxjs/toolkit';
 import type { Customer } from '../../types';
-
-interface CustomersState {
-  data: Customer[];
-}
-
-const initialState: CustomersState = {
-  data: [],
-};
 
 export function computeCustomerMissingFields(customer: Customer): string[] {
   const fieldsToCheck: Array<keyof Customer> = [
@@ -23,28 +15,25 @@ export function computeCustomerMissingFields(customer: Customer): string[] {
   }) as string[];
 }
 
+export const customersAdapter = createEntityAdapter<Customer>();
+
 const customersSlice = createSlice({
   name: 'customers',
-  initialState,
+  initialState: customersAdapter.getInitialState(),
   reducers: {
-    addCustomers(state, action: PayloadAction<Customer[]>) {
-      // Append customers
-      state.data.push(...action.payload);
-    },
+    addCustomers: customersAdapter.addMany,
     updateCustomer(state, action: PayloadAction<{ id: string; updates: Partial<Customer> }>) {
-      const idx = state.data.findIndex(c => c.id === action.payload.id);
-      if (idx !== -1) {
-        state.data[idx] = {
-          ...state.data[idx],
-          ...action.payload.updates,
-        };
-        // Recompute missing fields dynamically
-        state.data[idx].missingFields = computeCustomerMissingFields(state.data[idx]);
+      customersAdapter.updateOne(state, {
+        id: action.payload.id,
+        changes: action.payload.updates,
+      });
+      // Recompute missing fields dynamically
+      const customer = state.entities[action.payload.id];
+      if (customer) {
+        customer.missingFields = computeCustomerMissingFields(customer as Customer);
       }
     },
-    clearAll(state) {
-      state.data = [];
-    },
+    clearAll: customersAdapter.removeAll,
   },
 });
 

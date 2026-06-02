@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useAppDispatch } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { addInvoices } from '../store/slices/invoicesSlice';
 import { addProducts } from '../store/slices/productsSlice';
 import { addCustomers } from '../store/slices/customersSlice';
@@ -7,6 +7,7 @@ import {
   addFile,
   updateFileStatus,
   updateFileProgress,
+  addProcessedSignature,
 } from '../store/slices/processingSlice';
 import { processFile } from '../services/processors';
 import { v4 as uuidv4 } from 'uuid';
@@ -14,13 +15,28 @@ import toast from 'react-hot-toast';
 
 export function useFileProcessor() {
   const dispatch = useAppDispatch();
+  const processedSignatures = useAppSelector(state => state.processing.processedSignatures);
 
   const uploadAndProcessFiles = useCallback(async (files: File[]) => {
     if (files.length === 0) return;
 
+    const newFiles: File[] = [];
+
+    for (const file of files) {
+      const fileSignature = `${file.name}-${file.size}-${file.lastModified}`;
+      if (processedSignatures.includes(fileSignature)) {
+        toast.error(`Duplicate file detected: ${file.name}`);
+      } else {
+        newFiles.push(file);
+        dispatch(addProcessedSignature(fileSignature));
+      }
+    }
+
+    if (newFiles.length === 0) return;
+
     // Limit concurrency to maximum of 2 files at any given moment
     const CONCURRENCY_LIMIT = 2;
-    const items = [...files];
+    const items = [...newFiles];
     const itemQueue = items.map(file => ({
       file,
       id: uuidv4(),
@@ -38,7 +54,7 @@ export function useFileProcessor() {
       );
     });
 
-    toast.success(`Enqueued ${files.length} file(s) for Invoice AI extraction.`);
+    toast.success(`Enqueued ${newFiles.length} file(s) for Invoice AI extraction.`);
 
     let activeWorkerCount = 0;
     let nextIndex = 0;

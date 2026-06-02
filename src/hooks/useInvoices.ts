@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { updateInvoice, clearAll } from '../store/slices/invoicesSlice';
+import { updateInvoice, clearAll, invoicesAdapter } from '../store/slices/invoicesSlice';
 import type { Invoice } from '../types';
 
 export function useInvoices() {
   const dispatch = useAppDispatch();
-  const invoices = useAppSelector(state => state.invoices.data);
+  const invoices = useAppSelector(state => invoicesAdapter.getSelectors().selectAll(state.invoices));
 
   const editInvoice = useCallback((id: string, updates: Partial<Invoice>) => {
     dispatch(updateInvoice({ id, updates }));

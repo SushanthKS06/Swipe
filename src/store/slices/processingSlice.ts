@@ -3,10 +3,12 @@ import type { ProcessingFile, FileProcessingStatus } from '../../types';
 
 interface ProcessingState {
   files: ProcessingFile[];
+  processedSignatures: string[];
 }
 
 const initialState: ProcessingState = {
   files: [],
+  processedSignatures: [],
 };
 
 const processingSlice = createSlice({
@@ -67,8 +69,14 @@ const processingSlice = createSlice({
     removeFile(state, action: PayloadAction<string>) {
       state.files = state.files.filter(f => f.id !== action.payload);
     },
+    addProcessedSignature(state, action: PayloadAction<string>) {
+      if (!state.processedSignatures.includes(action.payload)) {
+        state.processedSignatures.push(action.payload);
+      }
+    },
     clearAll(state) {
       state.files = [];
+      state.processedSignatures = [];
     },
   },
 });
@@ -78,6 +86,7 @@ export const {
   updateFileStatus,
   updateFileProgress,
   removeFile,
+  addProcessedSignature,
   clearAll,
 } = processingSlice.actions;
 
