@@ -29,6 +29,8 @@ CRITICAL RULES:
 9. NEVER invent data — null is always better than a guess.
 10. RELATIONAL INTEGRITY: You must assign a unique, deterministic ID (e.g., 'cust_1', 'prod_A') to every customer and product you extract. Inside the invoices array, you MUST use these exact IDs as customer_id and product_id to link the invoice to the respective entities, rather than relying solely on string names.
 11. CURRENCY DETECTION: Analyze the document to determine the primary currency used. Return the 3-letter ISO 4217 currency code (e.g., USD, INR, EUR, GBP) in the \`summary.currency_code\` field. If no currency is visible, default to 'USD'.
+12. LITERAL TRANSCRIPTION: Do not alter, autocorrect, or add formatting to strings. Transcribe product names, IDs, and text fields EXACTLY as they appear in the source document. Be character-perfect.
+13. STRICT METADATA SCANNING: NEVER miss explicitly labeled metadata. Actively scan the entire document specifically for keys like 'Email', 'Phone', 'Address', or 'Account'. If a labeled value exists anywhere in the document, you MUST capture it in the respective JSON field. Do not return null if the data is visible.
 
 DEDUPLICATION: If the same customer appears multiple times, sum their total purchase amount and keep a single customer entry. Keep product list unique. Keep the structure perfect.
 `;

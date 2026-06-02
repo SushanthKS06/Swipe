@@ -55,6 +55,18 @@ export function parseGeminiResponse(
         if (existing.unitPrice === null && p.unit_price !== null && p.unit_price !== undefined) {
           existing.unitPrice = p.unit_price;
         }
+        if (existing.taxPercentage === null && p.tax_percentage !== null && p.tax_percentage !== undefined) {
+          existing.taxPercentage = p.tax_percentage;
+        }
+        if (p.tax !== null && p.tax !== undefined) {
+          existing.tax = (existing.tax || 0) + p.tax;
+        }
+        if (p.price_with_tax !== null && p.price_with_tax !== undefined) {
+          existing.priceWithTax = (existing.priceWithTax || 0) + p.price_with_tax;
+        }
+        if (p.discount !== null && p.discount !== undefined) {
+          existing.discount = (existing.discount || 0) + p.discount;
+        }
         existing.missingFields = computeProductMissingFields(existing);
       }
     });
