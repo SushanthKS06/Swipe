@@ -10,19 +10,28 @@ export function parseGeminiResponse(
 ): { invoices: Invoice[]; products: Product[]; customers: Customer[] } {
   const confidence = data.summary?.confidence || 'medium';
 
-  // 1. Extract/Deduplicate Products
-  const productsMap = new Map<string, Product>(); // normalized name -> Product
+  const productUuidMap = new Map<string, string>(); // AI product_id -> UUID
+  const customerUuidMap = new Map<string, string>(); // AI customer_id -> UUID
   
+  const productsResultMap = new Map<string, Product>(); // UUID -> Product
+  const customersResultMap = new Map<string, Customer>(); // UUID -> Customer
+
   if (Array.isArray(data.products)) {
     data.products.forEach(p => {
-      const name = p.name ? p.name.trim() : null;
-      if (!name) return; // Ignore nameless products
-      
-      const normKey = name.toLowerCase();
-      if (!productsMap.has(normKey)) {
+      // Need ID to track relational mapping
+      const pId = p.id;
+      if (!pId) return;
+
+      let uuid = productUuidMap.get(pId);
+      if (!uuid) {
+        uuid = uuidv4();
+        productUuidMap.set(pId, uuid);
+      }
+
+      if (!productsResultMap.has(uuid)) {
         const productObj: Product = {
-          id: uuidv4(),
-          name,
+          id: uuid,
+          name: p.name !== undefined ? p.name : null,
           quantity: p.quantity !== undefined ? p.quantity : null,
           unitPrice: p.unit_price !== undefined ? p.unit_price : null,
           tax: p.tax !== undefined ? p.tax : null,
@@ -35,35 +44,35 @@ export function parseGeminiResponse(
           sourceFile: filename,
         };
         productObj.missingFields = computeProductMissingFields(productObj);
-        productsMap.set(normKey, productObj);
+        productsResultMap.set(uuid, productObj);
       } else {
-        // If product already exists, let's aggregate quantities or check if we can fill finer details
-        const existing = productsMap.get(normKey)!;
+        const existing = productsResultMap.get(uuid)!;
         if (existing.quantity !== null && p.quantity !== null && p.quantity !== undefined) {
           existing.quantity += p.quantity;
         }
         if (existing.unitPrice === null && p.unit_price !== null && p.unit_price !== undefined) {
           existing.unitPrice = p.unit_price;
         }
-        // Recompute missing fields
         existing.missingFields = computeProductMissingFields(existing);
       }
     });
   }
 
-  // 2. Extract/Deduplicate Customers
-  const customersMap = new Map<string, Customer>(); // normalized name -> Customer
-
   if (Array.isArray(data.customers)) {
     data.customers.forEach(c => {
-      const name = c.customer_name ? c.customer_name.trim() : null;
-      if (!name) return;
+      const cId = c.id;
+      if (!cId) return;
 
-      const normKey = name.toLowerCase();
-      if (!customersMap.has(normKey)) {
+      let uuid = customerUuidMap.get(cId);
+      if (!uuid) {
+        uuid = uuidv4();
+        customerUuidMap.set(cId, uuid);
+      }
+
+      if (!customersResultMap.has(uuid)) {
         const customerObj: Customer = {
-          id: uuidv4(),
-          customerName: name,
+          id: uuid,
+          customerName: c.customer_name !== undefined ? c.customer_name : null,
           phoneNumber: c.phone_number !== undefined ? c.phone_number : null,
           email: c.email !== undefined ? c.email : null,
           address: c.address !== undefined ? c.address : null,
@@ -73,14 +82,12 @@ export function parseGeminiResponse(
           sourceFile: filename,
         };
         customerObj.missingFields = computeCustomerMissingFields(customerObj);
-        customersMap.set(normKey, customerObj);
+        customersResultMap.set(uuid, customerObj);
       } else {
-        // Accumulate total purchase amount for duplicate customers across invoices (requested)
-        const existing = customersMap.get(normKey)!;
+        const existing = customersResultMap.get(uuid)!;
         if (c.total_purchase_amount !== null && c.total_purchase_amount !== undefined) {
           existing.totalPurchaseAmount = (existing.totalPurchaseAmount || 0) + c.total_purchase_amount;
         }
-        // Fill in missing details if this record has them
         if (!existing.phoneNumber && c.phone_number) existing.phoneNumber = c.phone_number;
         if (!existing.email && c.email) existing.email = c.email;
         if (!existing.address && c.address) existing.address = c.address;
@@ -90,28 +97,23 @@ export function parseGeminiResponse(
     });
   }
 
-  // 3. Process Invoices (and link them to Products/Customers)
   const invoices: Invoice[] = [];
 
   if (Array.isArray(data.invoices)) {
     data.invoices.forEach(inv => {
-      let customerId: string | null = null;
-      let productId: string | null = null;
+      let fCustomerUuid: string | null = null;
+      let fProductUuid: string | null = null;
 
-      const cName = inv.customer_name ? inv.customer_name.trim() : null;
-      const pName = inv.product_name ? inv.product_name.trim() : null;
-
-      // Double-link customer lookup (create on the fly if missing in customers but present in invoice)
-      if (cName) {
-        const cKey = cName.toLowerCase();
-        if (customersMap.has(cKey)) {
-          customerId = customersMap.get(cKey)!.id;
-        } else {
+      const aiCustId = inv.customer_id;
+      if (aiCustId) {
+        let uuid = customerUuidMap.get(aiCustId);
+        if (!uuid) {
           // Robust mapping fallback: create customer record on-the-fly
-          const newCustId = uuidv4();
+          uuid = uuidv4();
+          customerUuidMap.set(aiCustId, uuid);
           const newCustomer: Customer = {
-            id: newCustId,
-            customerName: cName,
+            id: uuid,
+            customerName: inv.customer_name || `Unknown Customer (${aiCustId})`,
             phoneNumber: null,
             email: null,
             address: null,
@@ -121,22 +123,21 @@ export function parseGeminiResponse(
             sourceFile: filename,
           };
           newCustomer.missingFields = computeCustomerMissingFields(newCustomer);
-          customersMap.set(cKey, newCustomer);
-          customerId = newCustId;
+          customersResultMap.set(uuid, newCustomer);
         }
+        fCustomerUuid = uuid;
       }
 
-      // Double-link product lookup (create on the fly if missing in products but present in invoice)
-      if (pName) {
-        const pKey = pName.toLowerCase();
-        if (productsMap.has(pKey)) {
-          productId = productsMap.get(pKey)!.id;
-        } else {
+      const aiProdId = inv.product_id;
+      if (aiProdId) {
+        let uuid = productUuidMap.get(aiProdId);
+        if (!uuid) {
           // Robust mapping fallback: create product record on-the-fly
-          const newProdId = uuidv4();
+          uuid = uuidv4();
+          productUuidMap.set(aiProdId, uuid);
           const newProduct: Product = {
-            id: newProdId,
-            name: pName,
+            id: uuid,
+            name: inv.product_name || `Unknown Product (${aiProdId})`,
             quantity: inv.quantity || 1,
             unitPrice: inv.unit_price || null,
             tax: inv.tax_amount || null,
@@ -149,12 +150,11 @@ export function parseGeminiResponse(
             sourceFile: filename,
           };
           newProduct.missingFields = computeProductMissingFields(newProduct);
-          productsMap.set(pKey, newProduct);
-          productId = newProdId;
+          productsResultMap.set(uuid, newProduct);
         }
+        fProductUuid = uuid;
       }
 
-      // Compute details
       let taxAmount = inv.tax_amount;
       let totalAmount = inv.total_amount;
       let netAmount = inv.net_amount;
@@ -171,10 +171,10 @@ export function parseGeminiResponse(
       const invoiceObj: Invoice = {
         id: uuidv4(),
         serialNumber: inv.serial_number ? inv.serial_number.trim() : null,
-        customerId,
-        customerName: cName,
-        productId,
-        productName: pName,
+        customerId: fCustomerUuid,
+        customerName: inv.customer_name ? inv.customer_name.trim() : null,
+        productId: fProductUuid,
+        productName: inv.product_name ? inv.product_name.trim() : null,
         quantity: inv.quantity !== undefined ? inv.quantity : null,
         unitPrice: inv.unit_price !== undefined ? inv.unit_price : null,
         taxAmount: taxAmount !== undefined ? taxAmount : null,
@@ -194,7 +194,7 @@ export function parseGeminiResponse(
 
   return {
     invoices,
-    products: Array.from(productsMap.values()),
-    customers: Array.from(customersMap.values()),
+    products: Array.from(productsResultMap.values()),
+    customers: Array.from(customersResultMap.values()),
   };
 }

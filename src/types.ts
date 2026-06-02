@@ -78,6 +78,8 @@ export interface GeminiExtractionResult {
   };
   invoices: Array<{
     serial_number: Nullable<string>;
+    customer_id: Nullable<string>;
+    product_id: Nullable<string>;
     customer_name: Nullable<string>;
     product_name: Nullable<string>;
     quantity: Nullable<number>;
@@ -87,9 +89,9 @@ export interface GeminiExtractionResult {
     total_amount: Nullable<number>;
     net_amount: Nullable<number>;
     date: Nullable<string>;
-    missing_fields: string[];
   }>;
   products: Array<{
+    id: Nullable<string>;
     name: Nullable<string>;
     quantity: Nullable<number>;
     unit_price: Nullable<number>;
@@ -97,14 +99,13 @@ export interface GeminiExtractionResult {
     tax_percentage: Nullable<number>;
     price_with_tax: Nullable<number>;
     discount: Nullable<number>;
-    missing_fields: string[];
   }>;
   customers: Array<{
+    id: Nullable<string>;
     customer_name: Nullable<string>;
     phone_number: Nullable<string>;
     email: Nullable<string>;
     address: Nullable<string>;
     total_purchase_amount: Nullable<number>;
-    missing_fields: string[];
   }>;
 }
