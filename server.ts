@@ -32,6 +32,12 @@ CRITICAL RULES:
 12. LITERAL TRANSCRIPTION: Do not alter, autocorrect, or add formatting to strings. Transcribe product names, IDs, and text fields EXACTLY as they appear in the source document. Be character-perfect.
 13. STRICT METADATA SCANNING: NEVER miss explicitly labeled metadata. Actively scan the entire document specifically for keys like 'Email', 'Phone', 'Address', or 'Account'. If a labeled value exists anywhere in the document, you MUST capture it in the respective JSON field. Do not return null if the data is visible.
 14. BALANCE DUE: If the document explicitly states a 'Balance Due' or 'Amount Due' that differs from the total amount, capture it. Otherwise, return null.
+15. SUMMARY DATA FALLBACK: If the source document is a summary spreadsheet that provides total amounts but NO specific line-item details (no product name, quantity, or unit price), you MUST force mathematical integrity. For these records:
+- Set product_name to 'General Entry' or 'Summary Record'
+- Set quantity to 1.
+- Set unit_price to equal the net_amount.
+- This ensures that quantity * unit_price = net_amount.
+16. MATHEMATICAL VALIDATION: Before outputting any invoice item, verify that quantity * unit_price roughly equals the net_amount (excluding tax/discount). NEVER output a row where quantity and unit price are 0 but the net amount is greater than 0.
 
 DEDUPLICATION: If the same customer appears multiple times, sum their total purchase amount and keep a single customer entry. Keep product list unique. Keep the structure perfect.
 `;
@@ -59,8 +65,8 @@ const extractionSchema: Schema = {
           product_id: { type: Type.STRING, nullable: true },
           customer_name: { type: Type.STRING, nullable: true },
           product_name: { type: Type.STRING, nullable: true },
-          quantity: { type: Type.NUMBER, nullable: true },
-          unit_price: { type: Type.NUMBER, nullable: true },
+          quantity: { type: Type.NUMBER, nullable: true, description: "Must be at least 1 if net_amount is > 0" },
+          unit_price: { type: Type.NUMBER, nullable: true, description: "Must be equal to net_amount if quantity is 1 and other details are missing." },
           tax_amount: { type: Type.NUMBER, nullable: true },
           tax_percentage: { type: Type.NUMBER, nullable: true },
           total_amount: { type: Type.NUMBER, nullable: true },
@@ -77,8 +83,8 @@ const extractionSchema: Schema = {
         properties: {
           id: { type: Type.STRING, nullable: true },
           name: { type: Type.STRING, nullable: true },
-          quantity: { type: Type.NUMBER, nullable: true },
-          unit_price: { type: Type.NUMBER, nullable: true },
+          quantity: { type: Type.NUMBER, nullable: true, description: "Must be at least 1 if net_amount is > 0" },
+          unit_price: { type: Type.NUMBER, nullable: true, description: "Must be equal to net_amount if quantity is 1 and other details are missing." },
           tax: { type: Type.NUMBER, nullable: true },
           tax_percentage: { type: Type.NUMBER, nullable: true },
           price_with_tax: { type: Type.NUMBER, nullable: true },
