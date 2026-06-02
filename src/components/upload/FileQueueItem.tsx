@@ -91,11 +91,12 @@ export function FileQueueItem({ file }: FileQueueItemProps) {
 
       {/* Segment to print any error outputs */}
       {file.status === 'error' && file.error && (
-        <div className="mt-1 flex items-start gap-1.5 px-3 py-2 bg-rose-50 text-rose-700 rounded-lg text-xs font-sans">
-          <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-          <span className="leading-normal break-all">
-            {file.error}
-          </span>
+        <div className="mt-2 flex items-start gap-2 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-sans shadow-sm">
+          <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-600" />
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold text-red-800">Extraction Failed</span>
+            <span className="leading-relaxed break-words">{file.error}</span>
+          </div>
         </div>
       )}
 

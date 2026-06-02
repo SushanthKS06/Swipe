@@ -99,6 +99,25 @@ const extractionSchema: Schema = {
   }
 };
 
+async function generateWithRetry(aiModel: any, requestConfig: any, retries = 3, baseDelay = 2000) {
+  let attempt = 0;
+  while (attempt < retries) {
+    try {
+      return await aiModel.generateContent(requestConfig);
+    } catch (error: any) {
+      const is503 = error?.status === 503 || error?.message?.includes("503") || error?.message?.includes("high demand") || error?.message?.includes("overloaded");
+      if (is503 && attempt < retries - 1) {
+        console.warn(`[API Retry] 503/high demand detected. Retrying in ${baseDelay}ms... (Attempt ${attempt + 1} of ${retries})`);
+        await new Promise(resolve => setTimeout(resolve, baseDelay));
+        baseDelay *= 2;
+        attempt++;
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
@@ -141,7 +160,7 @@ app.post("/api/extract", async (req, res) => {
       
       const instructions = `Extract the structured invoices, products, and customers from the attached file named "${filename}". Ensure that you follow the schema instructions and rules precisely.`;
 
-      result = await ai.models.generateContent({
+      result = await generateWithRetry(ai.models, {
         model: "gemini-3.5-flash",
         contents: [
           inlinePart,
@@ -158,7 +177,7 @@ app.post("/api/extract", async (req, res) => {
       // Excel/CSV text representation
       const instructions = `Analyze the spreadsheet data below from file name "${filename}". Extract all structured invoices, products, and customers.\n\nSPREADSHEET DATA:\n${fileData}`;
 
-      result = await ai.models.generateContent({
+      result = await generateWithRetry(ai.models, {
         model: "gemini-3.5-flash",
         contents: {
           parts: [{ text: instructions }]
@@ -182,6 +201,13 @@ app.post("/api/extract", async (req, res) => {
     res.json(parsedObj);
   } catch (error: any) {
     console.error("Extraction endpoint failed:", error);
+    const is503 = error?.status === 503 || error?.message?.includes("503") || error?.message?.includes("high demand") || error?.message?.includes("overloaded");
+    if (is503) {
+      res.status(503).json({
+        error: "The AI service is currently experiencing extremely high demand. Please wait a moment and try again."
+      });
+      return;
+    }
     res.status(500).json({
       error: error.message || "An error occurred during Gemini invoice extraction."
     });
