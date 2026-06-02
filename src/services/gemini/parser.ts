@@ -5,6 +5,8 @@ import { computeProductMissingFields } from '../../store/slices/productsSlice';
 import { computeCustomerMissingFields } from '../../store/slices/customersSlice';
 import { validateExtractionMath } from '../validators';
 
+const generateSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
 export function parseGeminiResponse(
   data: GeminiExtractionResult,
   filename: string
@@ -12,8 +14,8 @@ export function parseGeminiResponse(
   const confidence = data.summary?.confidence || 'medium';
   const docCurrency = data.summary?.currency_code || 'USD';
 
-  const productUuidMap = new Map<string, string>(); // AI product_id -> UUID
-  const customerUuidMap = new Map<string, string>(); // AI customer_id -> UUID
+  const productUuidMap = new Map<string, string>(); // AI product_id OR slug -> UUID
+  const customerUuidMap = new Map<string, string>(); // AI customer_id OR slug -> UUID
   
   const productsResultMap = new Map<string, Product>(); // UUID -> Product
   const customersResultMap = new Map<string, Customer>(); // UUID -> Customer
@@ -24,13 +26,19 @@ export function parseGeminiResponse(
 
   if (Array.isArray(safeProducts)) {
     safeProducts.forEach(p => {
-      // Need ID to track relational mapping
       const pId = p.id;
       if (!pId) return;
 
-      let uuid = productUuidMap.get(pId);
+      const slug = p.name ? generateSlug(p.name) : pId;
+      
+      let uuid = productUuidMap.get(slug) || productUuidMap.get(pId);
       if (!uuid) {
         uuid = uuidv4();
+        productUuidMap.set(slug, uuid);
+        productUuidMap.set(pId, uuid);
+      } else {
+        // Ensure both keys map to same uuid
+        productUuidMap.set(slug, uuid);
         productUuidMap.set(pId, uuid);
       }
 
@@ -88,9 +96,15 @@ export function parseGeminiResponse(
       const cId = c.id;
       if (!cId) return;
 
-      let uuid = customerUuidMap.get(cId);
+      const slug = c.customer_name ? generateSlug(c.customer_name) : cId;
+
+      let uuid = customerUuidMap.get(slug) || customerUuidMap.get(cId);
       if (!uuid) {
         uuid = uuidv4();
+        customerUuidMap.set(slug, uuid);
+        customerUuidMap.set(cId, uuid);
+      } else {
+        customerUuidMap.set(slug, uuid);
         customerUuidMap.set(cId, uuid);
       }
 
@@ -132,12 +146,14 @@ export function parseGeminiResponse(
       let fProductUuid: string | null = null;
 
       const aiCustId = inv.customer_id;
-      if (aiCustId) {
-        let uuid = customerUuidMap.get(aiCustId);
+      const custSlug = inv.customer_name ? generateSlug(inv.customer_name) : aiCustId;
+      
+      if (aiCustId || custSlug) {
+        let uuid = (custSlug ? customerUuidMap.get(custSlug) : undefined) || (aiCustId ? customerUuidMap.get(aiCustId) : undefined);
         if (!uuid) {
-          // Robust mapping fallback: create customer record on-the-fly
           uuid = uuidv4();
-          customerUuidMap.set(aiCustId, uuid);
+          if (custSlug) customerUuidMap.set(custSlug, uuid);
+          if (aiCustId) customerUuidMap.set(aiCustId, uuid);
           const newCustomer: Customer = {
             id: uuid,
             customerName: inv.customer_name || `Unknown Customer (${aiCustId})`,
@@ -158,12 +174,14 @@ export function parseGeminiResponse(
       }
 
       const aiProdId = inv.product_id;
-      if (aiProdId) {
-        let uuid = productUuidMap.get(aiProdId);
+      const prodSlug = inv.product_name ? generateSlug(inv.product_name) : aiProdId;
+      
+      if (aiProdId || prodSlug) {
+        let uuid = (prodSlug ? productUuidMap.get(prodSlug) : undefined) || (aiProdId ? productUuidMap.get(aiProdId) : undefined);
         if (!uuid) {
-          // Robust mapping fallback: create product record on-the-fly
           uuid = uuidv4();
-          productUuidMap.set(aiProdId, uuid);
+          if (prodSlug) productUuidMap.set(prodSlug, uuid);
+          if (aiProdId) productUuidMap.set(aiProdId, uuid);
           const newProduct: Product = {
             id: uuid,
             name: inv.product_name || `Unknown Product (${aiProdId})`,
@@ -210,11 +228,11 @@ export function parseGeminiResponse(
 
       // Confidence-based local inferences inside parser
       if (netAmount === null && totalAmount !== null && taxAmount !== null) {
-        netAmount = totalAmount - taxAmount;
+        netAmount = Math.round((totalAmount - taxAmount) * 100) / 100;
       }
       if (totalAmount === null && netAmount !== null) {
         taxAmount = taxAmount || 0;
-        totalAmount = netAmount + taxAmount;
+        totalAmount = Math.round((netAmount + taxAmount) * 100) / 100;
       }
 
       let finalTaxPercentage = inv.tax_percentage;

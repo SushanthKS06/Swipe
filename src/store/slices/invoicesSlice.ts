@@ -45,14 +45,18 @@ const invoicesSlice = createSlice({
       const { productId, name, unitPrice } = action.payload;
       Object.values(state.entities).forEach(invoice => {
         if (invoice && invoice.productId === productId) {
+          let needsRecompute = false;
           if (name !== undefined) {
+            if (!invoice.productName) needsRecompute = true;
             invoice.productName = name;
           }
           if (unitPrice !== undefined) {
+            if (invoice.unitPrice === null || invoice.unitPrice === undefined) needsRecompute = true;
             invoice.unitPrice = unitPrice;
           }
-          // Recompute missing fields after cascade
-          invoice.missingFields = computeInvoiceMissingFields(invoice as Invoice);
+          if (needsRecompute) {
+            invoice.missingFields = computeInvoiceMissingFields(invoice as Invoice);
+          }
         }
       });
     },
@@ -63,11 +67,14 @@ const invoicesSlice = createSlice({
       const { customerId, customerName } = action.payload;
       Object.values(state.entities).forEach(invoice => {
         if (invoice && invoice.customerId === customerId) {
+          let needsRecompute = false;
           if (customerName !== undefined) {
+            if (!invoice.customerName) needsRecompute = true;
             invoice.customerName = customerName;
           }
-          // Recompute missing fields after cascade
-          invoice.missingFields = computeInvoiceMissingFields(invoice as Invoice);
+          if (needsRecompute) {
+            invoice.missingFields = computeInvoiceMissingFields(invoice as Invoice);
+          }
         }
       });
     },

@@ -3,6 +3,7 @@ import { toBase64 } from '../../utils/fileHelpers';
 import { processExcelFile } from './excelProcessor';
 import { processImageFile } from './imageProcessor';
 import { parseGeminiResponse } from '../gemini/parser';
+import { extractFromDocument } from '../gemini/client';
 import type { Invoice, Product, Customer } from '../../types';
 
 export interface ProcessedResult {
@@ -55,35 +56,9 @@ export async function processFile(
   for (let i = 0; i < filePayloads.length; i++) {
     const payload = filePayloads[i];
     
-    // Concurrent/batched: if we want concurrent we could Promise.all. 
-    // The prompt says "concurrent/batched calls", but let's do Promise.all to be fast, but we'll batches of 5.
-    // For simplicity, we can do them sequentially unless specified. The token bomb refers to one giant call.
-    // Sequential helps with rate limting.
+    const chunkFilename = filePayloads.length > 1 ? `${file.name} (Chunk ${i + 1}/${filePayloads.length})` : file.name;
+    const rawJsonResult = await extractFromDocument(payload, customMimeType, chunkFilename);
     
-    const response = await fetch('/api/extract', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        fileData: payload,
-        fileType: customMimeType,
-        filename: filePayloads.length > 1 ? `${file.name} (Chunk ${i + 1}/${filePayloads.length})` : file.name,
-      }),
-    });
-
-    if (!response.ok) {
-      let errorMsg = 'Failed to extract data.';
-      try {
-        const errRes = await response.json();
-        errorMsg = errRes.error || errorMsg;
-      } catch (e) {
-        // ignore
-      }
-      throw new Error(errorMsg);
-    }
-
-    const rawJsonResult = await response.json();
     allRawJsonResults.push(rawJsonResult);
     
     onProgress(50 + ((i + 1) / filePayloads.length) * 25);
