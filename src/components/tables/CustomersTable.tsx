@@ -73,6 +73,7 @@ export function CustomersTable({ customers }: CustomersTableProps) {
                 fieldName="totalPurchaseAmount"
                 onSave={val => editCustomer(customer.id, { totalPurchaseAmount: val })}
                 type="number"
+                currencyCode={customer.currencyCode}
               />
 
               {/* ConfidenceBadge */}

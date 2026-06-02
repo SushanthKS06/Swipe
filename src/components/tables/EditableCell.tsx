@@ -6,6 +6,7 @@ interface EditableCellProps {
   fieldName: string;
   onSave: (value: any) => void;
   type?: 'text' | 'number' | 'date';
+  currencyCode?: string;
 }
 
 export function EditableCell({
@@ -14,6 +15,7 @@ export function EditableCell({
   fieldName,
   onSave,
   type = 'text',
+  currencyCode = 'USD',
 }: EditableCellProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -98,7 +100,7 @@ export function EditableCell({
     ) {
       displayValue = new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: currencyCode || 'USD',
       }).format(value);
     } else {
       displayValue = String(value);

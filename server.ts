@@ -28,6 +28,7 @@ CRITICAL RULES:
 8. Infer missing values ONLY when you are highly confident (e.g. total_amount = net_amount + tax_amount, or price_with_tax = unit_price + tax).
 9. NEVER invent data — null is always better than a guess.
 10. RELATIONAL INTEGRITY: You must assign a unique, deterministic ID (e.g., 'cust_1', 'prod_A') to every customer and product you extract. Inside the invoices array, you MUST use these exact IDs as customer_id and product_id to link the invoice to the respective entities, rather than relying solely on string names.
+11. CURRENCY DETECTION: Analyze the document to determine the primary currency used. Return the 3-letter ISO 4217 currency code (e.g., USD, INR, EUR, GBP) in the \`summary.currency_code\` field. If no currency is visible, default to 'USD'.
 
 DEDUPLICATION: If the same customer appears multiple times, sum their total purchase amount and keep a single customer entry. Keep product list unique. Keep the structure perfect.
 `;
@@ -41,7 +42,8 @@ const extractionSchema: Schema = {
         file_type: { type: Type.STRING },
         total_invoices_found: { type: Type.INTEGER },
         confidence: { type: Type.STRING },
-        notes: { type: Type.STRING }
+        notes: { type: Type.STRING },
+        currency_code: { type: Type.STRING, description: "3-letter ISO 4217 currency code" }
       }
     },
     invoices: {

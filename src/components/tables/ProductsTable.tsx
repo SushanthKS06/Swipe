@@ -57,6 +57,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
                 fieldName="unitPrice"
                 onSave={val => editProduct(product.id, { unitPrice: val })}
                 type="number"
+                currencyCode={product.currencyCode}
               />
 
               {/* Tax */}
@@ -66,6 +67,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
                 fieldName="tax"
                 onSave={val => editProduct(product.id, { tax: val })}
                 type="number"
+                currencyCode={product.currencyCode}
               />
 
               {/* Tax % */}
@@ -84,6 +86,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
                 fieldName="priceWithTax"
                 onSave={val => editProduct(product.id, { priceWithTax: val })}
                 type="number"
+                currencyCode={product.currencyCode}
               />
 
               {/* Discount Amount */}
@@ -93,6 +96,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
                 fieldName="discount"
                 onSave={val => editProduct(product.id, { discount: val })}
                 type="number"
+                currencyCode={product.currencyCode}
               />
 
               {/* Confidence level */}

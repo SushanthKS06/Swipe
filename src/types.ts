@@ -27,6 +27,7 @@ export interface Invoice {
   missingFields: string[];          // List of fields that are null/missing
   confidence: Confidence;
   sourceFile: string;               // Original uploaded filename
+  currencyCode: string;             // ISO 4217 currency code
 }
 
 export interface Product {
@@ -42,6 +43,7 @@ export interface Product {
   missingFields: string[];
   confidence: Confidence;
   sourceFile: string;
+  currencyCode: string;             // ISO 4217 currency code
 }
 
 export interface Customer {
@@ -54,6 +56,7 @@ export interface Customer {
   missingFields: string[];
   confidence: Confidence;
   sourceFile: string;
+  currencyCode: string;             // ISO 4217 currency code
 }
 
 export interface ProcessingFile {
@@ -75,6 +78,7 @@ export interface GeminiExtractionResult {
     total_invoices_found: number;
     confidence: Confidence;
     notes: string;
+    currency_code: string;
   };
   invoices: Array<{
     serial_number: Nullable<string>;

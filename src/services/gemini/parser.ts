@@ -9,6 +9,7 @@ export function parseGeminiResponse(
   filename: string
 ): { invoices: Invoice[]; products: Product[]; customers: Customer[] } {
   const confidence = data.summary?.confidence || 'medium';
+  const docCurrency = data.summary?.currency_code || 'USD';
 
   const productUuidMap = new Map<string, string>(); // AI product_id -> UUID
   const customerUuidMap = new Map<string, string>(); // AI customer_id -> UUID
@@ -42,6 +43,7 @@ export function parseGeminiResponse(
           missingFields: [],
           confidence,
           sourceFile: filename,
+          currencyCode: docCurrency,
         };
         productObj.missingFields = computeProductMissingFields(productObj);
         productsResultMap.set(uuid, productObj);
@@ -80,6 +82,7 @@ export function parseGeminiResponse(
           missingFields: [],
           confidence,
           sourceFile: filename,
+          currencyCode: docCurrency,
         };
         customerObj.missingFields = computeCustomerMissingFields(customerObj);
         customersResultMap.set(uuid, customerObj);
@@ -121,6 +124,7 @@ export function parseGeminiResponse(
             missingFields: [],
             confidence,
             sourceFile: filename,
+            currencyCode: docCurrency,
           };
           newCustomer.missingFields = computeCustomerMissingFields(newCustomer);
           customersResultMap.set(uuid, newCustomer);
@@ -148,6 +152,7 @@ export function parseGeminiResponse(
             missingFields: [],
             confidence,
             sourceFile: filename,
+            currencyCode: docCurrency,
           };
           newProduct.missingFields = computeProductMissingFields(newProduct);
           productsResultMap.set(uuid, newProduct);
@@ -185,6 +190,7 @@ export function parseGeminiResponse(
         missingFields: [],
         confidence,
         sourceFile: filename,
+        currencyCode: docCurrency,
       };
 
       invoiceObj.missingFields = computeInvoiceMissingFields(invoiceObj);

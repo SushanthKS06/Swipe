@@ -78,6 +78,7 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
                 fieldName="unitPrice"
                 onSave={val => editInvoice(invoice.id, { unitPrice: val })}
                 type="number"
+                currencyCode={invoice.currencyCode}
               />
 
               {/* Tax Amount */}
@@ -87,6 +88,7 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
                 fieldName="taxAmount"
                 onSave={val => editInvoice(invoice.id, { taxAmount: val })}
                 type="number"
+                currencyCode={invoice.currencyCode}
               />
 
               {/* Tax % */}
@@ -105,6 +107,7 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
                 fieldName="netAmount"
                 onSave={val => editInvoice(invoice.id, { netAmount: val })}
                 type="number"
+                currencyCode={invoice.currencyCode}
               />
 
               {/* Total Amount */}
@@ -114,6 +117,7 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
                 fieldName="totalAmount"
                 onSave={val => editInvoice(invoice.id, { totalAmount: val })}
                 type="number"
+                currencyCode={invoice.currencyCode}
               />
 
               {/* Date */}
