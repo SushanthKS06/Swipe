@@ -212,6 +212,13 @@ export function parseGeminiResponse(
         totalAmount = netAmount + taxAmount;
       }
 
+      let finalTaxPercentage = inv.tax_percentage;
+      if ((finalTaxPercentage === 0 || finalTaxPercentage === null || finalTaxPercentage === undefined) && inv.tax_amount !== null && inv.tax_amount !== undefined && inv.tax_amount > 0 && inv.net_amount !== null && inv.net_amount !== undefined && inv.net_amount > 0) {
+        finalTaxPercentage = Math.round((inv.tax_amount / inv.net_amount) * 10000) / 100;
+      } else if (inv.tax_amount === 0) {
+        finalTaxPercentage = 0;
+      }
+
       const invoiceObj: Invoice = {
         id: uuidv4(),
         serialNumber: inv.serial_number ? inv.serial_number.trim() : null,
@@ -222,7 +229,7 @@ export function parseGeminiResponse(
         quantity: inv.quantity !== undefined ? inv.quantity : null,
         unitPrice: inv.unit_price !== undefined ? inv.unit_price : null,
         taxAmount: taxAmount !== undefined ? taxAmount : null,
-        taxPercentage: inv.tax_percentage !== undefined ? inv.tax_percentage : null,
+        taxPercentage: finalTaxPercentage !== undefined ? finalTaxPercentage : null,
         totalAmount: totalAmount !== undefined ? totalAmount : null,
         netAmount: netAmount !== undefined ? netAmount : null,
         date: inv.date || null,
