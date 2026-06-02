@@ -2,7 +2,7 @@
 
 A production-ready full-stack application designed to parse, normalize, and validate complex financial documents (invoices, receipts, and summary spreadsheets) using Google's generative AI models.
 
-## Architecture Diagram
+## 🏗 Architecture Diagram
 
 ```mermaid
 sequenceDiagram
@@ -25,7 +25,7 @@ sequenceDiagram
     Frontend-->>User: Renders Editable Data Tables
 ```
 
-## Key Features
+## ✨ Key Features
 
 - **Multi-modal Extraction**: Upload PDFs, images, or summary spreadsheets. The system extracts relational entities (Invoices, Customers, Products).
 - **Strict Schema Enforcement**: Utilizes Gemini's Native Structured Outputs to guarantee deterministic API results without brittle regex scraping.
@@ -34,7 +34,7 @@ sequenceDiagram
 - **Export Ready**: Download the normalized tables (Invoices, Products, Customers) out to clean CSV formats with empty/null field protection.
 - **Resilient AI Calling**: Wraps the AI execution logic in an Exponential Backoff strategy to gracefully mitigate `503 High Demand` errors or rate limits.
 
-## Technology Stack
+## 🛠 Technology Stack
 
 | Component | Technology | Purpose |
 | :--- | :--- | :--- |
@@ -45,17 +45,17 @@ sequenceDiagram
 | **AI SDK** | `@google/genai` | Modern TypeScript SDK to interact with Gemini 2.5 Pro/Flash. |
 | **Build Tool** | Vite | Lightning-fast module bundler and HMR. |
 
-## End-to-End System Flow
+## 🏗 Architecture Diagram
 
 ```mermaid
 flowchart TD
-    A[User Uploads Document] -->|File (PDF/Image/CSV)| B(React Frontend)
-    B -->|Base64 Data + MIME| C{Express Backend}
+    A[User Uploads Document] -->|File PDF/Image/CSV| B[React Frontend]
+    B -->|Base64 Data + MIME| C[Express Backend]
     C -->|generateWithRetry| D[Gemini API]
     D -->|Structured Data| C
     C -->|JSON Payload| E[parser.ts Engine]
     E -->|Tax Eng + Math Fixes| F[Normalized Entities]
-    F -->|Invoices / Products / Customers| G(Redux Store)
+    F -->|Invoices / Products / Customers| G[Redux Store]
     G -->|Rendered| H[Interactive Data Tables]
     H -->|User Edits| I[CSV Export]
 ```
@@ -67,7 +67,7 @@ flowchart TD
 5. **Data Normalization Engine**: Once the raw JSON returns from Gemini, the client-side `parser.ts` engine kicks in. It dynamically maps relational ID keys, reconstructs missing `taxPercentages`, dedupes floating-point arithmetic properly (handling standard JS float math anomalies), and provides fallback entities for unstructured summary tables.
 6. **Data Presentation & Export**: The normalized arrays (Invoices, Products, Customers) are pushed into the Redux store and beautifully rendered within interactive data tables. Users can verify, edit, and then reliably export these normalized databases to CSV.
 
-## Core API Interfaces
+## 🔌 Core API Interfaces
 
 ### Internal Proxy Endpoint
 
@@ -90,14 +90,73 @@ Proxies the file payload to Google Gen AI securely.
 | `products` | `array` | A list of distinct Product entities with AI-generated Foreign Keys (`product_id`). |
 | `invoices` | `array` | The line-item ledger mapping Quantities and Taxes to their relational Product/Customer IDs. |
 
-## Project Structure
+## 🗂 Complete Project Structure
 
-- `/src/components/` - React UI, Tables, and layout components.
-- `/src/services/` - Gemini API extraction client and semantic JSON parsing logic (`parser.ts`).
-- `/server.ts` - Node.js Express backend implementing proxy routes and the centralized `generateWithRetry` flow.
-- `/src/utils/` - Helpers for File conversions, Base64 encodings, and CSV exports.
+```text
+/
+├── .env.example
+├── .gitignore
+├── index.html
+├── metadata.json
+├── package-lock.json
+├── package.json
+├── README.md
+├── server.ts
+├── TECHNICAL_ARCHITECTURE.md
+├── tsconfig.json
+├── vite.config.ts
+├── src/
+│   ├── App.tsx
+│   ├── index.css
+│   ├── main.tsx
+│   ├── types.ts
+│   ├── components/
+│   │   ├── common/
+│   │   │   ├── ConfidenceBadge.tsx
+│   │   │   └── StatusBadge.tsx
+│   │   ├── layout/
+│   │   │   ├── Header.tsx
+│   │   │   ├── MissingFieldsBanner.tsx
+│   │   │   └── TabBar.tsx
+│   │   ├── tables/
+│   │   │   ├── CustomersTable.tsx
+│   │   │   ├── EditableCell.tsx
+│   │   │   ├── EmptyState.tsx
+│   │   │   ├── InvoicesTable.tsx
+│   │   │   ├── ProductsTable.tsx
+│   │   │   └── TableToolbar.tsx
+│   │   └── upload/
+│   │       ├── FileDropzone.tsx
+│   │       ├── FileQueueItem.tsx
+│   │       ├── FileQueueList.tsx
+│   │       └── UploadModal.tsx
+│   ├── hooks/
+│   │   ├── useCustomers.ts
+│   │   ├── useFileProcessor.ts
+│   │   ├── useInvoices.ts
+│   │   └── useProducts.ts
+│   ├── services/
+│   │   ├── gemini/
+│   │   │   └── parser.ts
+│   │   └── processors/
+│   │       ├── detector.ts
+│   │       ├── excelProcessor.ts
+│   │       └── index.ts
+│   ├── store/
+│   │   ├── hooks.ts
+│   │   ├── index.ts
+│   │   └── slices/
+│   │       ├── customersSlice.ts
+│   │       ├── invoicesSlice.ts
+│   │       ├── processingSlice.ts
+│   │       └── productsSlice.ts
+│   └── utils/
+│       ├── exportHelpers.ts
+│       ├── fileHelpers.ts
+│       └── formatters.ts
+```
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -120,9 +179,9 @@ GEMINI_API_KEY=your_api_key_here
 
 3. Open the app in your browser (typically `http://localhost:3000`).
 
-## Technical Documentation
+## 📚 Technical Documentation
 
 For an in-depth dive into the internal data normalization logic, schema design, and financial math preservation strategies, please read our [Technical Architecture Strategy](./TECHNICAL_ARCHITECTURE.md).
 
-## License
+## 📄 License
 MIT
